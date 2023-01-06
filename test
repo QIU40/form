@@ -1,0 +1,228 @@
+import 'package:flutter/material.dart';
+
+void main() => runApp(MaterialApp(home: Episode5()));
+
+class Episode5 extends StatefulWidget {
+  @override
+  _Episode5State createState() => _Episode5State();
+}
+
+class User {
+  String name;
+  String age;
+  int age1;
+
+  User({this.name = '', this.age = ''}) : age1 = int.parse(age);
+}
+
+class _Episode5State extends State<Episode5> {
+  TextEditingController nameController = TextEditingController();
+  TextEditingController emailController = TextEditingController();
+  int currentIndex = 0;
+
+  final form = GlobalKey<FormState>();
+  static var _focusNode = new FocusNode();
+  bool update = false;
+  User user = User(age: '', name: '');
+  List<User> userList = [
+    User(name: "a", age: '12'),
+    User(name: "d", age: '23'),
+    User(name: "c", age: '19'),
+  ];
+
+  @override
+  Widget build(BuildContext context) {
+    Widget bodyData() => DataTable(
+          onSelectAll: (b) {},
+          sortColumnIndex: 0,
+          sortAscending: true,
+          columns: <DataColumn>[
+            DataColumn(label: Text("Name"), tooltip: "To Display name"),
+            DataColumn(label: Text("Age"), tooltip: "To Display Age"),
+            DataColumn(label: Text("Update"), tooltip: "Update data"),
+            DataColumn(label: Text("Delete"), tooltip: "Delete data"),
+          ],
+          rows: userList
+              .map(
+                (name) => DataRow(
+                  cells: [
+                    DataCell(
+                      Text(name.name),
+                    ),
+                    DataCell(
+                      Text(name.age),
+                    ),
+                    DataCell(
+                      IconButton(
+                        onPressed: () {
+                          _updateTextControllers(name); // new function here
+                        },
+                        icon: Icon(
+                          Icons.edit,
+                          color: Colors.black,
+                        ),
+                      ),
+                    ),
+                    DataCell(
+                      IconButton(
+                        onPressed: () =>
+                            _deleteTextControllers(name), // new function here
+                        icon: Icon(
+                          Icons.delete,
+                          color: Colors.black,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              )
+              .toList(),
+        );
+
+    return Scaffold(
+      appBar: AppBar(
+        title: Text("Data add to List Table using Form"),
+      ),
+      body: Container(
+        child: Column(
+          children: <Widget>[
+            bodyData(),
+            Padding(
+              padding: EdgeInsets.all(10.0),
+              child: Form(
+                key: form,
+                child: Container(
+                  child: Column(
+                    children: <Widget>[
+                      TextFormField(
+                        controller: nameController,
+                        focusNode: _focusNode,
+                        keyboardType: TextInputType.text,
+                        autocorrect: false,
+                        onSaved: (value) {
+                          user.name = value!;
+                        },
+                        maxLines: 1,
+                        validator: (value) {
+                          if (value!.isEmpty) {
+                            return 'This field is required';
+                          }
+                          return null;
+                        },
+                        decoration: new InputDecoration(
+                          labelText: 'Name',
+                          hintText: 'Name',
+                          labelStyle: new TextStyle(
+                              decorationStyle: TextDecorationStyle.solid),
+                        ),
+                      ),
+                      SizedBox(
+                        height: 10,
+                      ),
+                      TextFormField(
+                        controller: emailController,
+                        keyboardType: TextInputType.text,
+                        autocorrect: false,
+                        maxLines: 1,
+                        validator: (value) {
+                          if (value!.isEmpty) {
+                            return 'This field is required';
+                          }
+                          return null;
+                        },
+                        onSaved: (value) {
+                          user.age = value!;
+                        },
+                        decoration: new InputDecoration(
+                            labelText: 'Age',
+                            hintText: 'Age',
+                            labelStyle: new TextStyle(
+                                decorationStyle: TextDecorationStyle.solid)),
+                      ),
+                      SizedBox(
+                        height: 10,
+                      ),
+                      Column(
+                        // crossAxisAlignment: CrossAxisAlignment.start,
+                        children: <Widget>[
+                          Center(
+                            child: Row(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: <Widget>[
+                                TextButton(
+                                  child: Text("Add"),
+                                  onPressed: () {
+                                    if (validate() == true) {
+                                      form.currentState?.save();
+                                      addUserToList(
+                                        user.name,
+                                        user.age,
+                                      );
+                                      clearForm();
+                                    }
+                                  },
+                                ),
+                                TextButton(
+                                  child: Text("Update"),
+                                  onPressed: () {
+                                    if (validate() == true) {
+                                      form.currentState?.save();
+                                      updateForm(user);
+                                      clearForm();
+                                    }
+                                  },
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void updateForm(User user) {
+    setState(() {
+      User user = User(name: nameController.text, age: emailController.text);
+      userList[currentIndex] = user;
+    });
+  }
+
+  void _updateTextControllers(User user) {
+    setState(() {
+      nameController.text = user.name;
+      emailController.text = user.age;
+    });
+  }
+
+  void _deleteTextControllers(User user) {
+    setState(() {
+      int currentIndex = userList.indexOf(user);
+      userList.removeAt(currentIndex);
+    });
+  }
+
+  void addUserToList(name, age) {
+    setState(() {
+      userList.add(User(name: name, age: age));
+    });
+  }
+
+  clearForm() {
+    nameController.clear();
+    emailController.clear();
+  }
+
+  bool validate() {
+    var valid = form.currentState!.validate();
+    if (valid) form.currentState!.save();
+    return valid;
+  }
+}
